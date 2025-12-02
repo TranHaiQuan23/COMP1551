@@ -1,608 +1,1268 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Windows.Forms;
+using System.Linq;
 
-// Data Model Classes (same as before)
-public class Person
+/// <summary>
+/// Education Centre Desktop Information System
+/// A comprehensive management system for handling Teaching Staff, Administration, and Students
+/// Author: Student Name
+/// Course: COMP1551
+/// Date: November 22, 2025
+/// </summary>
+namespace EducationCentreSystem
 {
-    private string _name, _telephone, _email, _role;
-
-    public Person() { _name = _telephone = _email = _role = ""; }
-    
-    public Person(string name, string telephone, string email, string role)
+    /// <summary>
+    /// Base class representing a person in the education centre
+    /// Implements encapsulation with private fields and public properties
+    /// Serves as the foundation for all user types in the system
+    /// </summary>
+    public class Person
     {
-        _name = name; _telephone = telephone; _email = email; _role = role;
-    }
+        // Private fields implementing encapsulation principle
+        private string _name;
+        private string _telephone;
+        private string _email;
+        private string _role;
 
-    public string Name { get { return _name; } set { _name = value ?? ""; } }
-    public string Telephone { get { return _telephone; } set { _telephone = value ?? ""; } }
-    public string Email { get { return _email; } set { _email = value ?? ""; } }
-    public string Role { get { return _role; } set { _role = value ?? ""; } }
-
-    public virtual string DisplayInfo()
-    {
-        return string.Format("{0} | {1} | {2} | {3}", Name, Telephone, Email, Role);
-    }
-}
-
-public class Teacher : Person
-{
-    private decimal _salary;
-    private string _subject1, _subject2;
-
-    public Teacher() : base() { _salary = 0; _subject1 = _subject2 = ""; }
-    
-    public Teacher(string name, string telephone, string email, decimal salary, string subject1, string subject2)
-        : base(name, telephone, email, "Teacher")
-    {
-        _salary = salary; _subject1 = subject1; _subject2 = subject2;
-    }
-
-    public decimal Salary { get { return _salary; } set { _salary = value >= 0 ? value : 0; } }
-    public string Subject1 { get { return _subject1; } set { _subject1 = value ?? ""; } }
-    public string Subject2 { get { return _subject2; } set { _subject2 = value ?? ""; } }
-
-    public override string DisplayInfo()
-    {
-        return base.DisplayInfo() + string.Format(" | ${0:F2} | {1}, {2}", Salary, Subject1, Subject2);
-    }
-}
-
-public class Admin : Person
-{
-    private decimal _salary;
-    private string _employmentType;
-    private int _workingHours;
-
-    public Admin() : base() { _salary = 0; _employmentType = "Full-time"; _workingHours = 40; }
-    
-    public Admin(string name, string telephone, string email, decimal salary, string employmentType, int workingHours)
-        : base(name, telephone, email, "Admin")
-    {
-        _salary = salary; _employmentType = employmentType; _workingHours = workingHours;
-    }
-
-    public decimal Salary { get { return _salary; } set { _salary = value >= 0 ? value : 0; } }
-    public string EmploymentType { get { return _employmentType; } set { _employmentType = value; } }
-    public int WorkingHours { get { return _workingHours; } set { _workingHours = value > 0 ? value : 1; } }
-
-    public override string DisplayInfo()
-    {
-        return base.DisplayInfo() + string.Format(" | ${0:F2} | {1} | {2}h", Salary, EmploymentType, WorkingHours);
-    }
-}
-
-public class Student : Person
-{
-    private string _subject1, _subject2, _subject3;
-
-    public Student() : base() { _subject1 = _subject2 = _subject3 = ""; }
-    
-    public Student(string name, string telephone, string email, string subject1, string subject2, string subject3)
-        : base(name, telephone, email, "Student")
-    {
-        _subject1 = subject1; _subject2 = subject2; _subject3 = subject3;
-    }
-
-    public string Subject1 { get { return _subject1; } set { _subject1 = value ?? ""; } }
-    public string Subject2 { get { return _subject2; } set { _subject2 = value ?? ""; } }
-    public string Subject3 { get { return _subject3; } set { _subject3 = value ?? ""; } }
-
-    public override string DisplayInfo()
-    {
-        return base.DisplayInfo() + string.Format(" | {0}, {1}, {2}", Subject1, Subject2, Subject3);
-    }
-}
-
-// Main Windows Forms Application
-public partial class EducationCentreApp : Form
-{
-    private List<Teacher> teachers = new List<Teacher>();
-    private List<Admin> admins = new List<Admin>();
-    private List<Student> students = new List<Student>();
-
-    private TabControl tabControl;
-    private TabPage addTab, viewTab, editTab, deleteTab;
-    
-    // Add Tab Controls
-    private ComboBox cmbUserType;
-    private TextBox txtName, txtPhone, txtEmail, txtSalary, txtSubject1, txtSubject2, txtSubject3, txtHours;
-    private ComboBox cmbEmployment;
-    private Panel pnlSpecific;
-    private Button btnAdd, btnClear;
-    
-    // View Tab Controls  
-    private ComboBox cmbFilter;
-    private ListBox lstView;
-    private Button btnRefresh;
-    
-    // Edit Tab Controls
-    private ComboBox cmbEditType;
-    private ListBox lstEdit;
-    private Panel pnlEdit;
-    private Button btnSaveEdit;
-    
-    // Delete Tab Controls
-    private ComboBox cmbDeleteType;
-    private ListBox lstDelete;
-    private Button btnDelete;
-
-    private StatusStrip statusStrip;
-    private ToolStripStatusLabel lblStatus;
-
-    public EducationCentreApp()
-    {
-        InitializeComponent();
-        InitializeSampleData();
-        RefreshAllViews();
-    }
-
-    private void InitializeComponent()
-    {
-        this.Text = "Education Centre Management System";
-        this.Size = new Size(1000, 700);
-        this.StartPosition = FormStartPosition.CenterScreen;
-        this.FormBorderStyle = FormBorderStyle.FixedSingle;
-        this.MaximizeBox = false;
-
-        // Create tabs
-        tabControl = new TabControl { Dock = DockStyle.Fill };
-        CreateAddTab();
-        CreateViewTab();
-        CreateEditTab();
-        CreateDeleteTab();
-
-        // Status strip
-        statusStrip = new StatusStrip();
-        lblStatus = new ToolStripStatusLabel("Ready - Sample data loaded");
-        statusStrip.Items.Add(lblStatus);
-
-        this.Controls.Add(tabControl);
-        this.Controls.Add(statusStrip);
-    }
-
-    private void CreateAddTab()
-    {
-        addTab = new TabPage("➕ Add New");
-        
-        // User type selection
-        var lblType = new Label { Text = "User Type:", Location = new Point(20, 20), Size = new Size(80, 25) };
-        cmbUserType = new ComboBox 
-        { 
-            Location = new Point(110, 20), Size = new Size(120, 25),
-            DropDownStyle = ComboBoxStyle.DropDownList
-        };
-        cmbUserType.Items.AddRange(new[] { "Teacher", "Admin", "Student" });
-        cmbUserType.SelectedIndexChanged += CmbUserType_SelectedIndexChanged;
-
-        // Common fields
-        var lblName = new Label { Text = "Name:", Location = new Point(20, 60), Size = new Size(80, 25) };
-        txtName = new TextBox { Location = new Point(110, 60), Size = new Size(200, 25) };
-        
-        var lblPhone = new Label { Text = "Phone:", Location = new Point(20, 100), Size = new Size(80, 25) };
-        txtPhone = new TextBox { Location = new Point(110, 100), Size = new Size(200, 25) };
-        
-        var lblEmail = new Label { Text = "Email:", Location = new Point(20, 140), Size = new Size(80, 25) };
-        txtEmail = new TextBox { Location = new Point(110, 140), Size = new Size(200, 25) };
-
-        // Specific fields panel
-        pnlSpecific = new Panel 
-        { 
-            Location = new Point(20, 180), Size = new Size(500, 200),
-            BorderStyle = BorderStyle.FixedSingle, BackColor = Color.LightGray
-        };
-
-        // Buttons
-        btnAdd = new Button 
-        { 
-            Text = "Add Record", Location = new Point(20, 400), Size = new Size(100, 35),
-            BackColor = Color.LightGreen
-        };
-        btnAdd.Click += BtnAdd_Click;
-        
-        btnClear = new Button 
-        { 
-            Text = "Clear", Location = new Point(130, 400), Size = new Size(80, 35),
-            BackColor = Color.LightYellow
-        };
-        btnClear.Click += BtnClear_Click;
-
-        addTab.Controls.AddRange(new Control[] { lblType, cmbUserType, lblName, txtName, lblPhone, txtPhone, lblEmail, txtEmail, pnlSpecific, btnAdd, btnClear });
-        tabControl.TabPages.Add(addTab);
-    }
-
-    private void CreateViewTab()
-    {
-        viewTab = new TabPage("👁 View Data");
-        
-        var lblFilter = new Label { Text = "Filter:", Location = new Point(20, 20), Size = new Size(50, 25) };
-        cmbFilter = new ComboBox 
-        { 
-            Location = new Point(80, 20), Size = new Size(120, 25),
-            DropDownStyle = ComboBoxStyle.DropDownList
-        };
-        cmbFilter.Items.AddRange(new[] { "All", "Teachers", "Admins", "Students" });
-        cmbFilter.SelectedIndex = 0;
-        cmbFilter.SelectedIndexChanged += CmbFilter_SelectedIndexChanged;
-
-        btnRefresh = new Button 
-        { 
-            Text = "Refresh", Location = new Point(210, 20), Size = new Size(80, 25),
-            BackColor = Color.LightBlue
-        };
-        btnRefresh.Click += BtnRefresh_Click;
-
-        lstView = new ListBox 
-        { 
-            Location = new Point(20, 60), Size = new Size(920, 500),
-            Font = new Font("Consolas", 9), HorizontalScrollbar = true
-        };
-
-        viewTab.Controls.AddRange(new Control[] { lblFilter, cmbFilter, btnRefresh, lstView });
-        tabControl.TabPages.Add(viewTab);
-    }
-
-    private void CreateEditTab()
-    {
-        editTab = new TabPage("✏ Edit Data");
-        
-        var lblEditType = new Label { Text = "Type:", Location = new Point(20, 20), Size = new Size(50, 25) };
-        cmbEditType = new ComboBox 
-        { 
-            Location = new Point(80, 20), Size = new Size(120, 25),
-            DropDownStyle = ComboBoxStyle.DropDownList
-        };
-        cmbEditType.Items.AddRange(new[] { "Teachers", "Admins", "Students" });
-        cmbEditType.SelectedIndexChanged += CmbEditType_SelectedIndexChanged;
-
-        lstEdit = new ListBox 
-        { 
-            Location = new Point(20, 60), Size = new Size(450, 300),
-            Font = new Font("Consolas", 9)
-        };
-        lstEdit.SelectedIndexChanged += LstEdit_SelectedIndexChanged;
-
-        pnlEdit = new Panel 
-        { 
-            Location = new Point(490, 60), Size = new Size(450, 300),
-            BorderStyle = BorderStyle.FixedSingle, BackColor = Color.LightCyan
-        };
-
-        btnSaveEdit = new Button 
-        { 
-            Text = "Save Changes", Location = new Point(490, 380), Size = new Size(120, 35),
-            BackColor = Color.Orange
-        };
-        btnSaveEdit.Click += BtnSaveEdit_Click;
-
-        editTab.Controls.AddRange(new Control[] { lblEditType, cmbEditType, lstEdit, pnlEdit, btnSaveEdit });
-        tabControl.TabPages.Add(editTab);
-    }
-
-    private void CreateDeleteTab()
-    {
-        deleteTab = new TabPage("🗑 Delete Data");
-        
-        var lblDelType = new Label { Text = "Type:", Location = new Point(20, 20), Size = new Size(50, 25) };
-        cmbDeleteType = new ComboBox 
-        { 
-            Location = new Point(80, 20), Size = new Size(120, 25),
-            DropDownStyle = ComboBoxStyle.DropDownList
-        };
-        cmbDeleteType.Items.AddRange(new[] { "Teachers", "Admins", "Students" });
-        cmbDeleteType.SelectedIndexChanged += CmbDeleteType_SelectedIndexChanged;
-
-        lstDelete = new ListBox 
-        { 
-            Location = new Point(20, 60), Size = new Size(920, 400),
-            Font = new Font("Consolas", 9), SelectionMode = SelectionMode.MultiExtended
-        };
-
-        btnDelete = new Button 
-        { 
-            Text = "Delete Selected", Location = new Point(20, 480), Size = new Size(120, 35),
-            BackColor = Color.LightCoral
-        };
-        btnDelete.Click += BtnDelete_Click;
-
-        deleteTab.Controls.AddRange(new Control[] { lblDelType, cmbDeleteType, lstDelete, btnDelete });
-        tabControl.TabPages.Add(deleteTab);
-    }
-
-    private void CmbUserType_SelectedIndexChanged(object sender, EventArgs e)
-    {
-        pnlSpecific.Controls.Clear();
-        string type = cmbUserType.SelectedItem?.ToString();
-        
-        if (type == "Teacher" || type == "Admin")
+        /// <summary>
+        /// Default constructor for Person class
+        /// Initializes empty values for all properties
+        /// </summary>
+        public Person()
         {
-            var lblSalary = new Label { Text = "Salary:", Location = new Point(10, 20), Size = new Size(80, 25) };
-            txtSalary = new TextBox { Location = new Point(100, 20), Size = new Size(100, 25) };
-            pnlSpecific.Controls.AddRange(new Control[] { lblSalary, txtSalary });
+            _name = "";
+            _telephone = "";
+            _email = "";
+            _role = "";
         }
 
-        if (type == "Teacher")
+        /// <summary>
+        /// Parameterized constructor for Person class
+        /// Allows initialization of all common properties
+        /// </summary>
+        /// <param name="name">Full name of the person</param>
+        /// <param name="telephone">Contact telephone number</param>
+        /// <param name="email">Email address</param>
+        /// <param name="role">Role in the education centre (Teacher/Admin/Student)</param>
+        public Person(string name, string telephone, string email, string role)
         {
-            var lblSub1 = new Label { Text = "Subject 1:", Location = new Point(10, 60), Size = new Size(80, 25) };
-            txtSubject1 = new TextBox { Location = new Point(100, 60), Size = new Size(150, 25) };
-            var lblSub2 = new Label { Text = "Subject 2:", Location = new Point(10, 100), Size = new Size(80, 25) };
-            txtSubject2 = new TextBox { Location = new Point(100, 100), Size = new Size(150, 25) };
-            pnlSpecific.Controls.AddRange(new Control[] { lblSub1, txtSubject1, lblSub2, txtSubject2 });
+            _name = name;
+            _telephone = telephone;
+            _email = email;
+            _role = role;
         }
-        else if (type == "Admin")
+
+        /// <summary>
+        /// Property for accessing and modifying the person's name
+        /// Implements encapsulation with validation
+        /// </summary>
+        public string Name
         {
-            var lblEmp = new Label { Text = "Employment:", Location = new Point(10, 60), Size = new Size(80, 25) };
-            cmbEmployment = new ComboBox 
+            get { return _name; }
+            set { _name = value ?? ""; }
+        }
+
+        /// <summary>
+        /// Property for accessing and modifying the person's telephone number
+        /// Implements encapsulation with validation
+        /// </summary>
+        public string Telephone
+        {
+            get { return _telephone; }
+            set { _telephone = value ?? ""; }
+        }
+
+        /// <summary>
+        /// Property for accessing and modifying the person's email address
+        /// Implements encapsulation with validation
+        /// </summary>
+        public string Email
+        {
+            get { return _email; }
+            set { _email = value ?? ""; }
+        }
+
+        /// <summary>
+        /// Property for accessing and modifying the person's role
+        /// Implements encapsulation with validation
+        /// </summary>
+        public string Role
+        {
+            get { return _role; }
+            set { _role = value ?? ""; }
+        }
+
+        /// <summary>
+        /// Virtual method for displaying person information
+        /// Can be overridden in derived classes for polymorphism
+        /// </summary>
+        /// <returns>Formatted string with person's basic information</returns>
+        public virtual string DisplayInfo()
+        {
+            return string.Format("Name: {0}, Telephone: {1}, Email: {2}, Role: {3}", Name, Telephone, Email, Role);
+        }
+
+        /// <summary>
+        /// Virtual method for getting detailed information
+        /// Designed to be overridden in derived classes for specific data display
+        /// </summary>
+        /// <returns>Basic person information</returns>
+        public virtual string GetDetailedInfo()
+        {
+            return DisplayInfo();
+        }
+    }
+
+    /// <summary>
+    /// Teacher class inheriting from Person base class
+    /// Represents teaching staff with salary and subject information
+    /// Demonstrates inheritance and polymorphism principles
+    /// </summary>
+    public class Teacher : Person
+    {
+        // Private fields specific to teachers
+        private decimal _salary;
+        private string _subject1;
+        private string _subject2;
+
+        /// <summary>
+        /// Default constructor for Teacher class
+        /// Calls base class constructor and initializes teacher-specific properties
+        /// </summary>
+        public Teacher() : base()
+        {
+            _salary = 0.0m;
+            _subject1 = "";
+            _subject2 = "";
+        }
+
+        /// <summary>
+        /// Parameterized constructor for Teacher class
+        /// Initializes all teacher properties including inherited ones
+        /// </summary>
+        /// <param name="name">Teacher's full name</param>
+        /// <param name="telephone">Teacher's telephone number</param>
+        /// <param name="email">Teacher's email address</param>
+        /// <param name="salary">Teacher's salary amount</param>
+        /// <param name="subject1">First subject taught by teacher</param>
+        /// <param name="subject2">Second subject taught by teacher</param>
+        public Teacher(string name, string telephone, string email, decimal salary, string subject1, string subject2)
+            : base(name, telephone, email, "Teacher")
+        {
+            _salary = salary;
+            _subject1 = subject1;
+            _subject2 = subject2;
+        }
+
+        /// <summary>
+        /// Property for accessing and modifying teacher's salary
+        /// Implements encapsulation with validation for positive values
+        /// </summary>
+        public decimal Salary
+        {
+            get { return _salary; }
+            set { _salary = value >= 0 ? value : 0; }
+        }
+
+        /// <summary>
+        /// Property for accessing and modifying teacher's first subject
+        /// Implements encapsulation with null checking
+        /// </summary>
+        public string Subject1
+        {
+            get { return _subject1; }
+            set { _subject1 = value ?? ""; }
+        }
+
+        /// <summary>
+        /// Property for accessing and modifying teacher's second subject
+        /// Implements encapsulation with null checking
+        /// </summary>
+        public string Subject2
+        {
+            get { return _subject2; }
+            set { _subject2 = value ?? ""; }
+        }
+
+        /// <summary>
+        /// Override of base class DisplayInfo method
+        /// Demonstrates polymorphism by providing teacher-specific information display
+        /// </summary>
+        /// <returns>Formatted string with teacher's complete information</returns>
+        public override string DisplayInfo()
+        {
+            return base.DisplayInfo() + string.Format(", Salary: ${0:F2}, Subjects: {1}, {2}", Salary, Subject1, Subject2);
+        }
+
+        /// <summary>
+        /// Override of base class GetDetailedInfo method
+        /// Provides comprehensive teacher information for detailed views
+        /// </summary>
+        /// <returns>Detailed teacher information string</returns>
+        public override string GetDetailedInfo()
+        {
+            return "=== Teacher Information ===\n" +
+                   "Name: " + Name + "\n" +
+                   "Telephone: " + Telephone + "\n" +
+                   "Email: " + Email + "\n" +
+                   "Role: " + Role + "\n" +
+                   "Salary: $" + Salary.ToString("F2") + "\n" +
+                   "Subject 1: " + Subject1 + "\n" +
+                   "Subject 2: " + Subject2 + "\n";
+        }
+    }
+
+    /// <summary>
+    /// Admin class inheriting from Person base class
+    /// Represents administration staff with salary, employment type, and working hours
+    /// Demonstrates inheritance and polymorphism principles
+    /// </summary>
+    public class Admin : Person
+    {
+        // Private fields specific to administration staff
+        private decimal _salary;
+        private string _employmentType; // Full-time or Part-time
+        private int _workingHours;
+
+        /// <summary>
+        /// Default constructor for Admin class
+        /// Calls base class constructor and initializes admin-specific properties
+        /// </summary>
+        public Admin() : base()
+        {
+            _salary = 0.0m;
+            _employmentType = "Full-time";
+            _workingHours = 40;
+        }
+
+        /// <summary>
+        /// Parameterized constructor for Admin class
+        /// Initializes all admin properties including inherited ones
+        /// </summary>
+        /// <param name="name">Admin's full name</param>
+        /// <param name="telephone">Admin's telephone number</param>
+        /// <param name="email">Admin's email address</param>
+        /// <param name="salary">Admin's salary amount</param>
+        /// <param name="employmentType">Full-time or Part-time employment</param>
+        /// <param name="workingHours">Number of working hours per week</param>
+        public Admin(string name, string telephone, string email, decimal salary, string employmentType, int workingHours)
+            : base(name, telephone, email, "Admin")
+        {
+            _salary = salary;
+            _employmentType = employmentType;
+            _workingHours = workingHours;
+        }
+
+        /// <summary>
+        /// Property for accessing and modifying admin's salary
+        /// Implements encapsulation with validation for positive values
+        /// </summary>
+        public decimal Salary
+        {
+            get { return _salary; }
+            set { _salary = value >= 0 ? value : 0; }
+        }
+
+        /// <summary>
+        /// Property for accessing and modifying admin's employment type
+        /// Implements encapsulation with validation for Full-time/Part-time
+        /// </summary>
+        public string EmploymentType
+        {
+            get { return _employmentType; }
+            set 
             { 
-                Location = new Point(100, 60), Size = new Size(120, 25),
-                DropDownStyle = ComboBoxStyle.DropDownList
-            };
-            cmbEmployment.Items.AddRange(new[] { "Full-time", "Part-time" });
-            cmbEmployment.SelectedIndex = 0;
+                if (value == "Full-time" || value == "Part-time")
+                    _employmentType = value;
+                else
+                    _employmentType = "Full-time";
+            }
+        }
+
+        /// <summary>
+        /// Property for accessing and modifying admin's working hours
+        /// Implements encapsulation with validation for positive values
+        /// </summary>
+        public int WorkingHours
+        {
+            get { return _workingHours; }
+            set { _workingHours = value > 0 ? value : 1; }
+        }
+
+        /// <summary>
+        /// Override of base class DisplayInfo method
+        /// Demonstrates polymorphism by providing admin-specific information display
+        /// </summary>
+        /// <returns>Formatted string with admin's complete information</returns>
+        public override string DisplayInfo()
+        {
+            return base.DisplayInfo() + string.Format(", Salary: ${0:F2}, Employment: {1}, Hours: {2}", Salary, EmploymentType, WorkingHours);
+        }
+
+        /// <summary>
+        /// Override of base class GetDetailedInfo method
+        /// Provides comprehensive admin information for detailed views
+        /// </summary>
+        /// <returns>Detailed admin information string</returns>
+        public override string GetDetailedInfo()
+        {
+            return "=== Administration Information ===\n" +
+                   "Name: " + Name + "\n" +
+                   "Telephone: " + Telephone + "\n" +
+                   "Email: " + Email + "\n" +
+                   "Role: " + Role + "\n" +
+                   "Salary: $" + Salary.ToString("F2") + "\n" +
+                   "Employment Type: " + EmploymentType + "\n" +
+                   "Working Hours: " + WorkingHours.ToString() + " hours/week\n";
+        }
+    }
+
+    /// <summary>
+    /// Student class inheriting from Person base class
+    /// Represents students with three subjects they are enrolled in
+    /// Demonstrates inheritance and polymorphism principles
+    /// </summary>
+    public class Student : Person
+    {
+        // Private fields specific to students
+        private string _subject1;
+        private string _subject2;
+        private string _subject3;
+
+        /// <summary>
+        /// Default constructor for Student class
+        /// Calls base class constructor and initializes student-specific properties
+        /// </summary>
+        public Student() : base()
+        {
+            _subject1 = "";
+            _subject2 = "";
+            _subject3 = "";
+        }
+
+        /// <summary>
+        /// Parameterized constructor for Student class
+        /// Initializes all student properties including inherited ones
+        /// </summary>
+        /// <param name="name">Student's full name</param>
+        /// <param name="telephone">Student's telephone number</param>
+        /// <param name="email">Student's email address</param>
+        /// <param name="subject1">First subject enrolled by student</param>
+        /// <param name="subject2">Second subject enrolled by student</param>
+        /// <param name="subject3">Third subject enrolled by student</param>
+        public Student(string name, string telephone, string email, string subject1, string subject2, string subject3)
+            : base(name, telephone, email, "Student")
+        {
+            _subject1 = subject1;
+            _subject2 = subject2;
+            _subject3 = subject3;
+        }
+
+        /// <summary>
+        /// Property for accessing and modifying student's first subject
+        /// Implements encapsulation with null checking
+        /// </summary>
+        public string Subject1
+        {
+            get { return _subject1; }
+            set { _subject1 = value ?? ""; }
+        }
+
+        /// <summary>
+        /// Property for accessing and modifying student's second subject
+        /// Implements encapsulation with null checking
+        /// </summary>
+        public string Subject2
+        {
+            get { return _subject2; }
+            set { _subject2 = value ?? ""; }
+        }
+
+        /// <summary>
+        /// Property for accessing and modifying student's third subject
+        /// Implements encapsulation with null checking
+        /// </summary>
+        public string Subject3
+        {
+            get { return _subject3; }
+            set { _subject3 = value ?? ""; }
+        }
+
+        /// <summary>
+        /// Override of base class DisplayInfo method
+        /// Demonstrates polymorphism by providing student-specific information display
+        /// </summary>
+        /// <returns>Formatted string with student's complete information</returns>
+        public override string DisplayInfo()
+        {
+            return base.DisplayInfo() + string.Format(", Subjects: {0}, {1}, {2}", Subject1, Subject2, Subject3);
+        }
+
+        /// <summary>
+        /// Override of base class GetDetailedInfo method
+        /// Provides comprehensive student information for detailed views
+        /// </summary>
+        /// <returns>Detailed student information string</returns>
+        public override string GetDetailedInfo()
+        {
+            return "=== Student Information ===\n" +
+                   "Name: " + Name + "\n" +
+                   "Telephone: " + Telephone + "\n" +
+                   "Email: " + Email + "\n" +
+                   "Role: " + Role + "\n" +
+                   "Subject 1: " + Subject1 + "\n" +
+                   "Subject 2: " + Subject2 + "\n" +
+                   "Subject 3: " + Subject3 + "\n";
+        }
+    }
+
+    /// <summary>
+    /// Main program class containing the Desktop Information System logic
+    /// Manages data structures and provides user interface functionality
+    /// Implements all required CRUD operations and menu system
+    /// </summary>
+    public class Program
+    {
+        // Data structures to store different types of users
+        // Using List<T> to handle unknown number of objects as required
+        private static List<Teacher> teachers = new List<Teacher>();
+        private static List<Admin> admins = new List<Admin>();
+        private static List<Student> students = new List<Student>();
+
+        /// <summary>
+        /// Main entry point of the application
+        /// Initializes the system with sample data and starts the menu loop
+        /// </summary>
+        /// <param name="args">Command line arguments (not used)</param>
+        static void Main(string[] args)
+        {
+            Console.WriteLine("=== Education Centre Desktop Information System ===");
+            Console.WriteLine("Welcome to the comprehensive user management system!");
+            Console.WriteLine("====================================================\n");
+
+            // Initialize system with sample data for demonstration
+            InitializeSampleData();
+
+            // Main program loop - continues until user chooses to exit
+            bool continueRunning = true;
+            while (continueRunning)
+            {
+                continueRunning = DisplayMainMenu();
+            }
+
+            Console.WriteLine("\nThank you for using the Education Centre Information System!");
+            Console.WriteLine("Press any key to exit...");
+            Console.ReadKey();
+        }
+
+        /// <summary>
+        /// Initializes the system with sample data for demonstration purposes
+        /// Helps showcase the functionality without requiring manual data entry
+        /// </summary>
+        private static void InitializeSampleData()
+        {
+            // Sample Teachers
+            teachers.Add(new Teacher("Dr. John Smith", "555-0101", "j.smith@edu.centre", 75000.00m, "Mathematics", "Physics"));
+            teachers.Add(new Teacher("Prof. Sarah Johnson", "555-0102", "s.johnson@edu.centre", 82000.00m, "English", "Literature"));
             
-            var lblHours = new Label { Text = "Hours/week:", Location = new Point(10, 100), Size = new Size(80, 25) };
-            txtHours = new TextBox { Location = new Point(100, 100), Size = new Size(60, 25), Text = "40" };
-            pnlSpecific.Controls.AddRange(new Control[] { lblEmp, cmbEmployment, lblHours, txtHours });
+            // Sample Admin Staff
+            admins.Add(new Admin("Mike Brown", "555-0201", "m.brown@edu.centre", 45000.00m, "Full-time", 40));
+            admins.Add(new Admin("Lisa Davis", "555-0202", "l.davis@edu.centre", 25000.00m, "Part-time", 20));
+            
+            // Sample Students
+            students.Add(new Student("Emma Wilson", "555-0301", "e.wilson@student.edu", "Mathematics", "Physics", "Chemistry"));
+            students.Add(new Student("James Miller", "555-0302", "j.miller@student.edu", "English", "History", "Art"));
+            
+            Console.WriteLine("System initialized with sample data.");
+            Console.WriteLine(string.Format("Sample data loaded: {0} teachers, {1} admins, {2} students\n", teachers.Count, admins.Count, students.Count));
         }
-        else if (type == "Student")
-        {
-            var lblSub1 = new Label { Text = "Subject 1:", Location = new Point(10, 20), Size = new Size(80, 25) };
-            txtSubject1 = new TextBox { Location = new Point(100, 20), Size = new Size(150, 25) };
-            var lblSub2 = new Label { Text = "Subject 2:", Location = new Point(10, 60), Size = new Size(80, 25) };
-            txtSubject2 = new TextBox { Location = new Point(100, 60), Size = new Size(150, 25) };
-            var lblSub3 = new Label { Text = "Subject 3:", Location = new Point(10, 100), Size = new Size(80, 25) };
-            txtSubject3 = new TextBox { Location = new Point(100, 100), Size = new Size(150, 25) };
-            pnlSpecific.Controls.AddRange(new Control[] { lblSub1, txtSubject1, lblSub2, txtSubject2, lblSub3, txtSubject3 });
-        }
-    }
 
-    private void BtnAdd_Click(object sender, EventArgs e)
-    {
-        try
+        /// <summary>
+        /// Displays the main menu and handles user input
+        /// Returns false when user chooses to exit, true to continue
+        /// </summary>
+        /// <returns>Boolean indicating whether to continue the program</returns>
+        private static bool DisplayMainMenu()
         {
-            if (string.IsNullOrWhiteSpace(txtName.Text))
+            Console.WriteLine("=== Main Menu ===");
+            Console.WriteLine("1. Add New Data");
+            Console.WriteLine("2. View All Existing Data");
+            Console.WriteLine("3. View Existing Data by User Group");
+            Console.WriteLine("4. Edit Existing Data");
+            Console.WriteLine("5. Delete Existing Data");
+            Console.WriteLine("6. Exit System");
+            Console.Write("\nPlease select an option (1-6): ");
+
+            string choice = Console.ReadLine();
+            Console.WriteLine();
+
+            // Process user choice using switch statement
+            switch (choice)
             {
-                MessageBox.Show("Please enter a name.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                case "1":
+                    AddNewData();
+                    break;
+                case "2":
+                    ViewAllData();
+                    break;
+                case "3":
+                    ViewDataByGroup();
+                    break;
+                case "4":
+                    EditExistingData();
+                    break;
+                case "5":
+                    DeleteExistingData();
+                    break;
+                case "6":
+                    return false; // Exit the program
+                default:
+                    Console.WriteLine("Invalid option. Please select a number between 1 and 6.");
+                    break;
+            }
+
+            Console.WriteLine("\nPress any key to continue...");
+            Console.ReadKey();
+            Console.Clear();
+            return true; // Continue the program
+        }
+
+        /// <summary>
+        /// Handles adding new data to the system
+        /// Provides submenu for different user types and validates input
+        /// </summary>
+        private static void AddNewData()
+        {
+            Console.WriteLine("=== Add New Data ===");
+            Console.WriteLine("1. Add New Teacher");
+            Console.WriteLine("2. Add New Admin");
+            Console.WriteLine("3. Add New Student");
+            Console.Write("Select user type to add (1-3): ");
+
+            string choice = Console.ReadLine();
+            Console.WriteLine();
+
+            switch (choice)
+            {
+                case "1":
+                    AddNewTeacher();
+                    break;
+                case "2":
+                    AddNewAdmin();
+                    break;
+                case "3":
+                    AddNewStudent();
+                    break;
+                default:
+                    Console.WriteLine("Invalid selection. Please choose 1, 2, or 3.");
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Collects input and creates a new Teacher object
+        /// Validates input data and adds to the teachers collection
+        /// </summary>
+        private static void AddNewTeacher()
+        {
+            Console.WriteLine("=== Add New Teacher ===");
+            
+            // Collect basic person information
+            Console.Write("Enter teacher's full name: ");
+            string name = Console.ReadLine();
+            
+            Console.Write("Enter teacher's telephone: ");
+            string telephone = Console.ReadLine();
+            
+            Console.Write("Enter teacher's email: ");
+            string email = Console.ReadLine();
+            
+            // Collect teacher-specific information
+            Console.Write("Enter teacher's salary: $");
+            decimal salary;
+            if (!decimal.TryParse(Console.ReadLine(), out salary))
+            {
+                Console.WriteLine("Invalid salary format. Setting to $0.00");
+                salary = 0.00m;
+            }
+            
+            Console.Write("Enter first subject taught: ");
+            string subject1 = Console.ReadLine();
+            
+            Console.Write("Enter second subject taught: ");
+            string subject2 = Console.ReadLine();
+
+            // Create new teacher object and add to collection
+            Teacher newTeacher = new Teacher(name, telephone, email, salary, subject1, subject2);
+            teachers.Add(newTeacher);
+            
+            Console.WriteLine(string.Format("\nTeacher '{0}' added successfully!", name));
+            Console.WriteLine(string.Format("Total teachers in system: {0}", teachers.Count));
+        }
+
+        /// <summary>
+        /// Collects input and creates a new Admin object
+        /// Validates input data and adds to the admins collection
+        /// </summary>
+        private static void AddNewAdmin()
+        {
+            Console.WriteLine("=== Add New Admin ===");
+            
+            // Collect basic person information
+            Console.Write("Enter admin's full name: ");
+            string name = Console.ReadLine();
+            
+            Console.Write("Enter admin's telephone: ");
+            string telephone = Console.ReadLine();
+            
+            Console.Write("Enter admin's email: ");
+            string email = Console.ReadLine();
+            
+            // Collect admin-specific information
+            Console.Write("Enter admin's salary: $");
+            decimal salary;
+            if (!decimal.TryParse(Console.ReadLine(), out salary))
+            {
+                Console.WriteLine("Invalid salary format. Setting to $0.00");
+                salary = 0.00m;
+            }
+            
+            Console.Write("Enter employment type (Full-time/Part-time): ");
+            string employmentType = Console.ReadLine();
+            
+            Console.Write("Enter working hours per week: ");
+            int workingHours;
+            if (!int.TryParse(Console.ReadLine(), out workingHours))
+            {
+                Console.WriteLine("Invalid hours format. Setting to 40 hours");
+                workingHours = 40;
+            }
+
+            // Create new admin object and add to collection
+            Admin newAdmin = new Admin(name, telephone, email, salary, employmentType, workingHours);
+            admins.Add(newAdmin);
+            
+            Console.WriteLine(string.Format("\nAdmin '{0}' added successfully!", name));
+            Console.WriteLine(string.Format("Total admins in system: {0}", admins.Count));
+        }
+
+        /// <summary>
+        /// Collects input and creates a new Student object
+        /// Validates input data and adds to the students collection
+        /// </summary>
+        private static void AddNewStudent()
+        {
+            Console.WriteLine("=== Add New Student ===");
+            
+            // Collect basic person information
+            Console.Write("Enter student's full name: ");
+            string name = Console.ReadLine();
+            
+            Console.Write("Enter student's telephone: ");
+            string telephone = Console.ReadLine();
+            
+            Console.Write("Enter student's email: ");
+            string email = Console.ReadLine();
+            
+            // Collect student-specific information (three subjects)
+            Console.Write("Enter first subject: ");
+            string subject1 = Console.ReadLine();
+            
+            Console.Write("Enter second subject: ");
+            string subject2 = Console.ReadLine();
+            
+            Console.Write("Enter third subject: ");
+            string subject3 = Console.ReadLine();
+
+            // Create new student object and add to collection
+            Student newStudent = new Student(name, telephone, email, subject1, subject2, subject3);
+            students.Add(newStudent);
+            
+            Console.WriteLine(string.Format("\nStudent '{0}' added successfully!", name));
+            Console.WriteLine(string.Format("Total students in system: {0}", students.Count));
+        }
+
+        /// <summary>
+        /// Displays all existing data from all user groups
+        /// Uses polymorphism to call appropriate DisplayInfo method for each object type
+        /// </summary>
+        private static void ViewAllData()
+        {
+            Console.WriteLine("=== View All Existing Data ===");
+            
+            int totalRecords = teachers.Count + admins.Count + students.Count;
+            if (totalRecords == 0)
+            {
+                Console.WriteLine("No records found in the system.");
                 return;
             }
 
-            string type = cmbUserType.SelectedItem?.ToString();
-            if (string.IsNullOrEmpty(type))
+            Console.WriteLine(string.Format("Total Records in System: {0}", totalRecords));
+            Console.WriteLine(string.Format("Teachers: {0}, Admins: {1}, Students: {2}\n", teachers.Count, admins.Count, students.Count));
+
+            // Display all teachers using polymorphism
+            if (teachers.Count > 0)
             {
-                MessageBox.Show("Please select a user type.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            switch (type)
-            {
-                case "Teacher":
-                    decimal teacherSalary = 0;
-                    decimal.TryParse(txtSalary?.Text, out teacherSalary);
-                    teachers.Add(new Teacher(txtName.Text, txtPhone.Text, txtEmail.Text, teacherSalary, txtSubject1?.Text ?? "", txtSubject2?.Text ?? ""));
-                    break;
-                    
-                case "Admin":
-                    decimal adminSalary = 0;
-                    decimal.TryParse(txtSalary?.Text, out adminSalary);
-                    int hours = 40;
-                    int.TryParse(txtHours?.Text, out hours);
-                    admins.Add(new Admin(txtName.Text, txtPhone.Text, txtEmail.Text, adminSalary, cmbEmployment?.SelectedItem?.ToString() ?? "Full-time", hours));
-                    break;
-                    
-                case "Student":
-                    students.Add(new Student(txtName.Text, txtPhone.Text, txtEmail.Text, txtSubject1?.Text ?? "", txtSubject2?.Text ?? "", txtSubject3?.Text ?? ""));
-                    break;
-            }
-
-            ClearFields();
-            RefreshAllViews();
-            lblStatus.Text = string.Format("{0} added successfully!", type);
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show("Error adding record: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-    }
-
-    private void BtnClear_Click(object sender, EventArgs e)
-    {
-        ClearFields();
-    }
-
-    private void ClearFields()
-    {
-        txtName.Clear();
-        txtPhone.Clear();
-        txtEmail.Clear();
-        txtSalary?.Clear();
-        txtSubject1?.Clear();
-        txtSubject2?.Clear();
-        txtSubject3?.Clear();
-        if (txtHours != null) txtHours.Text = "40";
-        if (cmbEmployment != null) cmbEmployment.SelectedIndex = 0;
-    }
-
-    private void CmbFilter_SelectedIndexChanged(object sender, EventArgs e)
-    {
-        RefreshViewList();
-    }
-
-    private void BtnRefresh_Click(object sender, EventArgs e)
-    {
-        RefreshAllViews();
-        lblStatus.Text = "Data refreshed";
-    }
-
-    private void RefreshViewList()
-    {
-        lstView.Items.Clear();
-        string filter = cmbFilter.SelectedItem?.ToString();
-        
-        lstView.Items.Add("=== EDUCATION CENTRE DATA ===");
-        lstView.Items.Add("");
-        
-        if (filter == "All" || filter == "Teachers")
-        {
-            lstView.Items.Add("TEACHERS:");
-            foreach (var teacher in teachers)
-                lstView.Items.Add("  " + teacher.DisplayInfo());
-            lstView.Items.Add("");
-        }
-        
-        if (filter == "All" || filter == "Admins")
-        {
-            lstView.Items.Add("ADMINISTRATION:");
-            foreach (var admin in admins)
-                lstView.Items.Add("  " + admin.DisplayInfo());
-            lstView.Items.Add("");
-        }
-        
-        if (filter == "All" || filter == "Students")
-        {
-            lstView.Items.Add("STUDENTS:");
-            foreach (var student in students)
-                lstView.Items.Add("  " + student.DisplayInfo());
-        }
-    }
-
-    private void CmbEditType_SelectedIndexChanged(object sender, EventArgs e)
-    {
-        RefreshEditList();
-    }
-
-    private void RefreshEditList()
-    {
-        lstEdit.Items.Clear();
-        string type = cmbEditType.SelectedItem?.ToString();
-        
-        switch (type)
-        {
-            case "Teachers":
-                foreach (var teacher in teachers)
-                    lstEdit.Items.Add(teacher.DisplayInfo());
-                break;
-            case "Admins":
-                foreach (var admin in admins)
-                    lstEdit.Items.Add(admin.DisplayInfo());
-                break;
-            case "Students":
-                foreach (var student in students)
-                    lstEdit.Items.Add(student.DisplayInfo());
-                break;
-        }
-    }
-
-    private void LstEdit_SelectedIndexChanged(object sender, EventArgs e)
-    {
-        // Implementation for loading selected user for editing
-        if (lstEdit.SelectedIndex >= 0)
-        {
-            pnlEdit.Controls.Clear();
-            var lblInfo = new Label { Text = "Edit functionality available.\nSelect record and modify values.", Location = new Point(10, 10), Size = new Size(400, 50) };
-            pnlEdit.Controls.Add(lblInfo);
-        }
-    }
-
-    private void BtnSaveEdit_Click(object sender, EventArgs e)
-    {
-        MessageBox.Show("Edit functionality implemented.\nRecord would be updated here.", "Edit Feature", MessageBoxButtons.OK, MessageBoxIcon.Information);
-    }
-
-    private void CmbDeleteType_SelectedIndexChanged(object sender, EventArgs e)
-    {
-        RefreshDeleteList();
-    }
-
-    private void RefreshDeleteList()
-    {
-        lstDelete.Items.Clear();
-        string type = cmbDeleteType.SelectedItem?.ToString();
-        
-        switch (type)
-        {
-            case "Teachers":
+                Console.WriteLine("=== TEACHERS ===");
                 for (int i = 0; i < teachers.Count; i++)
-                    lstDelete.Items.Add(string.Format("[{0}] {1}", i, teachers[i].DisplayInfo()));
-                break;
-            case "Admins":
-                for (int i = 0; i < admins.Count; i++)
-                    lstDelete.Items.Add(string.Format("[{0}] {1}", i, admins[i].DisplayInfo()));
-                break;
-            case "Students":
-                for (int i = 0; i < students.Count; i++)
-                    lstDelete.Items.Add(string.Format("[{0}] {1}", i, students[i].DisplayInfo()));
-                break;
-        }
-    }
+                {
+                    Console.WriteLine(string.Format("{0}. {1}", i + 1, teachers[i].DisplayInfo()));
+                }
+                Console.WriteLine();
+            }
 
-    private void BtnDelete_Click(object sender, EventArgs e)
-    {
-        if (lstDelete.SelectedIndices.Count == 0)
-        {
-            MessageBox.Show("Please select records to delete.", "Selection Required", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            return;
-        }
-
-        if (MessageBox.Show(string.Format("Delete {0} selected record(s)?", lstDelete.SelectedIndices.Count), "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-        {
-            string type = cmbDeleteType.SelectedItem?.ToString();
-            var indices = new List<int>();
-            
-            foreach (int index in lstDelete.SelectedIndices)
-                indices.Add(index);
-            
-            indices.Sort();
-            indices.Reverse(); // Delete from end to preserve indices
-            
-            switch (type)
+            // Display all admins using polymorphism
+            if (admins.Count > 0)
             {
-                case "Teachers":
-                    foreach (int i in indices)
-                        if (i < teachers.Count) teachers.RemoveAt(i);
+                Console.WriteLine("=== ADMINISTRATION ===");
+                for (int i = 0; i < admins.Count; i++)
+                {
+                    Console.WriteLine(string.Format("{0}. {1}", i + 1, admins[i].DisplayInfo()));
+                }
+                Console.WriteLine();
+            }
+
+            // Display all students using polymorphism
+            if (students.Count > 0)
+            {
+                Console.WriteLine("=== STUDENTS ===");
+                for (int i = 0; i < students.Count; i++)
+                {
+                    Console.WriteLine(string.Format("{0}. {1}", i + 1, students[i].DisplayInfo()));
+                }
+                Console.WriteLine();
+            }
+        }
+
+        /// <summary>
+        /// Displays existing data filtered by user group
+        /// Allows viewing of specific user types (Teachers, Admins, Students)
+        /// </summary>
+        private static void ViewDataByGroup()
+        {
+            Console.WriteLine("=== View Data by User Group ===");
+            Console.WriteLine("1. View Teachers");
+            Console.WriteLine("2. View Administration");
+            Console.WriteLine("3. View Students");
+            Console.Write("Select group to view (1-3): ");
+
+            string choice = Console.ReadLine();
+            Console.WriteLine();
+
+            switch (choice)
+            {
+                case "1":
+                    ViewTeachers();
                     break;
-                case "Admins":
-                    foreach (int i in indices)
-                        if (i < admins.Count) admins.RemoveAt(i);
+                case "2":
+                    ViewAdmins();
                     break;
-                case "Students":
-                    foreach (int i in indices)
-                        if (i < students.Count) students.RemoveAt(i);
+                case "3":
+                    ViewStudents();
+                    break;
+                default:
+                    Console.WriteLine("Invalid selection. Please choose 1, 2, or 3.");
                     break;
             }
-            
-            RefreshAllViews();
-            lblStatus.Text = string.Format("{0} record(s) deleted", indices.Count);
         }
-    }
 
-    private void RefreshAllViews()
-    {
-        RefreshViewList();
-        RefreshEditList();
-        RefreshDeleteList();
-    }
+        /// <summary>
+        /// Displays detailed information for all teachers
+        /// Uses polymorphism to show teacher-specific data
+        /// </summary>
+        private static void ViewTeachers()
+        {
+            Console.WriteLine("=== Teachers in System ===");
+            
+            if (teachers.Count == 0)
+            {
+                Console.WriteLine("No teachers found in the system.");
+                return;
+            }
 
-    private void InitializeSampleData()
-    {
-        teachers.Add(new Teacher("Dr. John Smith", "555-0101", "j.smith@edu.centre", 75000, "Mathematics", "Physics"));
-        teachers.Add(new Teacher("Prof. Sarah Johnson", "555-0102", "s.johnson@edu.centre", 82000, "English", "Literature"));
-        
-        admins.Add(new Admin("Mike Brown", "555-0201", "m.brown@edu.centre", 45000, "Full-time", 40));
-        admins.Add(new Admin("Lisa Davis", "555-0202", "l.davis@edu.centre", 25000, "Part-time", 20));
-        
-        students.Add(new Student("Emma Wilson", "555-0301", "e.wilson@student.edu", "Mathematics", "Physics", "Chemistry"));
-        students.Add(new Student("James Miller", "555-0302", "j.miller@student.edu", "English", "History", "Art"));
-    }
-}
+            Console.WriteLine(string.Format("Total Teachers: {0}\n", teachers.Count));
+            
+            for (int i = 0; i < teachers.Count; i++)
+            {
+                Console.WriteLine(string.Format("Teacher {0}:", i + 1));
+                Console.WriteLine(teachers[i].GetDetailedInfo());
+            }
+        }
 
-public class Program
-{
-    [STAThread]
-    public static void Main()
-    {
-        Application.EnableVisualStyles();
-        Application.SetCompatibleTextRenderingDefault(false);
-        Application.Run(new EducationCentreApp());
+        /// <summary>
+        /// Displays detailed information for all administration staff
+        /// Uses polymorphism to show admin-specific data
+        /// </summary>
+        private static void ViewAdmins()
+        {
+            Console.WriteLine("=== Administration Staff in System ===");
+            
+            if (admins.Count == 0)
+            {
+                Console.WriteLine("No administration staff found in the system.");
+                return;
+            }
+
+            Console.WriteLine(string.Format("Total Admin Staff: {0}\n", admins.Count));
+            
+            for (int i = 0; i < admins.Count; i++)
+            {
+                Console.WriteLine(string.Format("Admin {0}:", i + 1));
+                Console.WriteLine(admins[i].GetDetailedInfo());
+            }
+        }
+
+        /// <summary>
+        /// Displays detailed information for all students
+        /// Uses polymorphism to show student-specific data
+        /// </summary>
+        private static void ViewStudents()
+        {
+            Console.WriteLine("=== Students in System ===");
+            
+            if (students.Count == 0)
+            {
+                Console.WriteLine("No students found in the system.");
+                return;
+            }
+
+            Console.WriteLine(string.Format("Total Students: {0}\n", students.Count));
+            
+            for (int i = 0; i < students.Count; i++)
+            {
+                Console.WriteLine(string.Format("Student {0}:", i + 1));
+                Console.WriteLine(students[i].GetDetailedInfo());
+            }
+        }
+
+        /// <summary>
+        /// Handles editing of existing data in the system
+        /// Provides submenu for different user types and record selection
+        /// </summary>
+        private static void EditExistingData()
+        {
+            Console.WriteLine("=== Edit Existing Data ===");
+            Console.WriteLine("1. Edit Teacher");
+            Console.WriteLine("2. Edit Admin");
+            Console.WriteLine("3. Edit Student");
+            Console.Write("Select user type to edit (1-3): ");
+
+            string choice = Console.ReadLine();
+            Console.WriteLine();
+
+            switch (choice)
+            {
+                case "1":
+                    EditTeacher();
+                    break;
+                case "2":
+                    EditAdmin();
+                    break;
+                case "3":
+                    EditStudent();
+                    break;
+                default:
+                    Console.WriteLine("Invalid selection. Please choose 1, 2, or 3.");
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Edits a selected teacher's information
+        /// Displays current teachers and allows modification of selected record
+        /// </summary>
+        private static void EditTeacher()
+        {
+            if (teachers.Count == 0)
+            {
+                Console.WriteLine("No teachers found to edit.");
+                return;
+            }
+
+            Console.WriteLine("=== Edit Teacher ===");
+            Console.WriteLine("Current Teachers:");
+            
+            // Display all teachers with index numbers
+            for (int i = 0; i < teachers.Count; i++)
+            {
+                Console.WriteLine(string.Format("{0}. {1}", i + 1, teachers[i].DisplayInfo()));
+            }
+
+            Console.Write(string.Format("\nSelect teacher to edit (1-{0}): ", teachers.Count));
+            int selection;
+            if (!int.TryParse(Console.ReadLine(), out selection) || selection < 1 || selection > teachers.Count)
+            {
+                Console.WriteLine("Invalid selection.");
+                return;
+            }
+
+            // Get the selected teacher (convert to 0-based index)
+            Teacher selectedTeacher = teachers[selection - 1];
+            Console.WriteLine(string.Format("\nEditing: {0}\n", selectedTeacher.DisplayInfo()));
+
+            // Allow editing of each field with current value display
+            Console.WriteLine("Press Enter to keep current value, or enter new value:");
+            
+            Console.Write(string.Format("Name (current: {0}): ", selectedTeacher.Name));
+            string newName = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(newName))
+                selectedTeacher.Name = newName;
+
+            Console.Write(string.Format("Telephone (current: {0}): ", selectedTeacher.Telephone));
+            string newTelephone = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(newTelephone))
+                selectedTeacher.Telephone = newTelephone;
+
+            Console.Write(string.Format("Email (current: {0}): ", selectedTeacher.Email));
+            string newEmail = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(newEmail))
+                selectedTeacher.Email = newEmail;
+
+            Console.Write(string.Format("Salary (current: ${0:F2}): $", selectedTeacher.Salary));
+            string salaryInput = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(salaryInput))
+            {
+                decimal newSalary;
+                if (decimal.TryParse(salaryInput, out newSalary))
+                    selectedTeacher.Salary = newSalary;
+            }
+
+            Console.Write(string.Format("Subject 1 (current: {0}): ", selectedTeacher.Subject1));
+            string newSubject1 = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(newSubject1))
+                selectedTeacher.Subject1 = newSubject1;
+
+            Console.Write(string.Format("Subject 2 (current: {0}): ", selectedTeacher.Subject2));
+            string newSubject2 = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(newSubject2))
+                selectedTeacher.Subject2 = newSubject2;
+
+            Console.WriteLine(string.Format("\nTeacher '{0}' updated successfully!", selectedTeacher.Name));
+        }
+
+        /// <summary>
+        /// Edits a selected admin's information
+        /// Displays current admins and allows modification of selected record
+        /// </summary>
+        private static void EditAdmin()
+        {
+            if (admins.Count == 0)
+            {
+                Console.WriteLine("No admins found to edit.");
+                return;
+            }
+
+            Console.WriteLine("=== Edit Admin ===");
+            Console.WriteLine("Current Admin Staff:");
+            
+            // Display all admins with index numbers
+            for (int i = 0; i < admins.Count; i++)
+            {
+                Console.WriteLine(string.Format("{0}. {1}", i + 1, admins[i].DisplayInfo()));
+            }
+
+            Console.Write(string.Format("\nSelect admin to edit (1-{0}): ", admins.Count));
+            int selection;
+            if (!int.TryParse(Console.ReadLine(), out selection) || selection < 1 || selection > admins.Count)
+            {
+                Console.WriteLine("Invalid selection.");
+                return;
+            }
+
+            // Get the selected admin (convert to 0-based index)
+            Admin selectedAdmin = admins[selection - 1];
+            Console.WriteLine(string.Format("\nEditing: {0}\n", selectedAdmin.DisplayInfo()));
+
+            // Allow editing of each field with current value display
+            Console.WriteLine("Press Enter to keep current value, or enter new value:");
+            
+            Console.Write(string.Format("Name (current: {0}): ", selectedAdmin.Name));
+            string newName = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(newName))
+                selectedAdmin.Name = newName;
+
+            Console.Write(string.Format("Telephone (current: {0}): ", selectedAdmin.Telephone));
+            string newTelephone = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(newTelephone))
+                selectedAdmin.Telephone = newTelephone;
+
+            Console.Write(string.Format("Email (current: {0}): ", selectedAdmin.Email));
+            string newEmail = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(newEmail))
+                selectedAdmin.Email = newEmail;
+
+            Console.Write(string.Format("Salary (current: ${0:F2}): $", selectedAdmin.Salary));
+            string salaryInput = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(salaryInput))
+            {
+                decimal newSalary;
+                if (decimal.TryParse(salaryInput, out newSalary))
+                    selectedAdmin.Salary = newSalary;
+            }
+
+            Console.Write(string.Format("Employment Type (current: {0}): ", selectedAdmin.EmploymentType));
+            string newEmploymentType = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(newEmploymentType))
+                selectedAdmin.EmploymentType = newEmploymentType;
+
+            Console.Write(string.Format("Working Hours (current: {0}): ", selectedAdmin.WorkingHours));
+            string hoursInput = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(hoursInput))
+            {
+                int newHours;
+                if (int.TryParse(hoursInput, out newHours))
+                    selectedAdmin.WorkingHours = newHours;
+            }
+
+            Console.WriteLine(string.Format("\nAdmin '{0}' updated successfully!", selectedAdmin.Name));
+        }
+
+        /// <summary>
+        /// Edits a selected student's information
+        /// Displays current students and allows modification of selected record
+        /// </summary>
+        private static void EditStudent()
+        {
+            if (students.Count == 0)
+            {
+                Console.WriteLine("No students found to edit.");
+                return;
+            }
+
+            Console.WriteLine("=== Edit Student ===");
+            Console.WriteLine("Current Students:");
+            
+            // Display all students with index numbers
+            for (int i = 0; i < students.Count; i++)
+            {
+                Console.WriteLine(string.Format("{0}. {1}", i + 1, students[i].DisplayInfo()));
+            }
+
+            Console.Write(string.Format("\nSelect student to edit (1-{0}): ", students.Count));
+            int selection;
+            if (!int.TryParse(Console.ReadLine(), out selection) || selection < 1 || selection > students.Count)
+            {
+                Console.WriteLine("Invalid selection.");
+                return;
+            }
+
+            // Get the selected student (convert to 0-based index)
+            Student selectedStudent = students[selection - 1];
+            Console.WriteLine(string.Format("\nEditing: {0}\n", selectedStudent.DisplayInfo()));
+
+            // Allow editing of each field with current value display
+            Console.WriteLine("Press Enter to keep current value, or enter new value:");
+            
+            Console.Write(string.Format("Name (current: {0}): ", selectedStudent.Name));
+            string newName = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(newName))
+                selectedStudent.Name = newName;
+
+            Console.Write(string.Format("Telephone (current: {0}): ", selectedStudent.Telephone));
+            string newTelephone = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(newTelephone))
+                selectedStudent.Telephone = newTelephone;
+
+            Console.Write(string.Format("Email (current: {0}): ", selectedStudent.Email));
+            string newEmail = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(newEmail))
+                selectedStudent.Email = newEmail;
+
+            Console.Write(string.Format("Subject 1 (current: {0}): ", selectedStudent.Subject1));
+            string newSubject1 = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(newSubject1))
+                selectedStudent.Subject1 = newSubject1;
+
+            Console.Write(string.Format("Subject 2 (current: {0}): ", selectedStudent.Subject2));
+            string newSubject2 = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(newSubject2))
+                selectedStudent.Subject2 = newSubject2;
+
+            Console.Write(string.Format("Subject 3 (current: {0}): ", selectedStudent.Subject3));
+            string newSubject3 = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(newSubject3))
+                selectedStudent.Subject3 = newSubject3;
+
+            Console.WriteLine(string.Format("\nStudent '{0}' updated successfully!", selectedStudent.Name));
+        }
+
+        /// <summary>
+        /// Handles deletion of existing data from the system
+        /// Provides submenu for different user types and confirms deletion
+        /// </summary>
+        private static void DeleteExistingData()
+        {
+            Console.WriteLine("=== Delete Existing Data ===");
+            Console.WriteLine("1. Delete Teacher");
+            Console.WriteLine("2. Delete Admin");
+            Console.WriteLine("3. Delete Student");
+            Console.Write("Select user type to delete (1-3): ");
+
+            string choice = Console.ReadLine();
+            Console.WriteLine();
+
+            switch (choice)
+            {
+                case "1":
+                    DeleteTeacher();
+                    break;
+                case "2":
+                    DeleteAdmin();
+                    break;
+                case "3":
+                    DeleteStudent();
+                    break;
+                default:
+                    Console.WriteLine("Invalid selection. Please choose 1, 2, or 3.");
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Deletes a selected teacher from the system
+        /// Displays current teachers, confirms deletion, and removes from collection
+        /// </summary>
+        private static void DeleteTeacher()
+        {
+            if (teachers.Count == 0)
+            {
+                Console.WriteLine("No teachers found to delete.");
+                return;
+            }
+
+            Console.WriteLine("=== Delete Teacher ===");
+            Console.WriteLine("Current Teachers:");
+            
+            // Display all teachers with index numbers
+            for (int i = 0; i < teachers.Count; i++)
+            {
+                Console.WriteLine(string.Format("{0}. {1}", i + 1, teachers[i].DisplayInfo()));
+            }
+
+            Console.Write(string.Format("\nSelect teacher to delete (1-{0}): ", teachers.Count));
+            int selection;
+            if (!int.TryParse(Console.ReadLine(), out selection) || selection < 1 || selection > teachers.Count)
+            {
+                Console.WriteLine("Invalid selection.");
+                return;
+            }
+
+            // Get the selected teacher for confirmation
+            Teacher selectedTeacher = teachers[selection - 1];
+            Console.WriteLine("\nAre you sure you want to delete this teacher?");
+            Console.WriteLine(selectedTeacher.DisplayInfo());
+            Console.Write("Type 'YES' to confirm deletion: ");
+            
+            string confirmation = Console.ReadLine();
+            if (confirmation != null && confirmation.ToUpper() == "YES")
+            {
+                string deletedName = selectedTeacher.Name;
+                teachers.RemoveAt(selection - 1);
+                Console.WriteLine(string.Format("\nTeacher '{0}' deleted successfully!", deletedName));
+                Console.WriteLine(string.Format("Remaining teachers: {0}", teachers.Count));
+            }
+            else
+            {
+                Console.WriteLine("Deletion cancelled.");
+            }
+        }
+
+        /// <summary>
+        /// Deletes a selected admin from the system
+        /// Displays current admins, confirms deletion, and removes from collection
+        /// </summary>
+        private static void DeleteAdmin()
+        {
+            if (admins.Count == 0)
+            {
+                Console.WriteLine("No admins found to delete.");
+                return;
+            }
+
+            Console.WriteLine("=== Delete Admin ===");
+            Console.WriteLine("Current Admin Staff:");
+            
+            // Display all admins with index numbers
+            for (int i = 0; i < admins.Count; i++)
+            {
+                Console.WriteLine(string.Format("{0}. {1}", i + 1, admins[i].DisplayInfo()));
+            }
+
+            Console.Write(string.Format("\nSelect admin to delete (1-{0}): ", admins.Count));
+            int selection;
+            if (!int.TryParse(Console.ReadLine(), out selection) || selection < 1 || selection > admins.Count)
+            {
+                Console.WriteLine("Invalid selection.");
+                return;
+            }
+
+            // Get the selected admin for confirmation
+            Admin selectedAdmin = admins[selection - 1];
+            Console.WriteLine("\nAre you sure you want to delete this admin?");
+            Console.WriteLine(selectedAdmin.DisplayInfo());
+            Console.Write("Type 'YES' to confirm deletion: ");
+            
+            string confirmation = Console.ReadLine();
+            if (confirmation != null && confirmation.ToUpper() == "YES")
+            {
+                string deletedName = selectedAdmin.Name;
+                admins.RemoveAt(selection - 1);
+                Console.WriteLine(string.Format("\nAdmin '{0}' deleted successfully!", deletedName));
+                Console.WriteLine(string.Format("Remaining admins: {0}", admins.Count));
+            }
+            else
+            {
+                Console.WriteLine("Deletion cancelled.");
+            }
+        }
+
+        /// <summary>
+        /// Deletes a selected student from the system
+        /// Displays current students, confirms deletion, and removes from collection
+        /// </summary>
+        private static void DeleteStudent()
+        {
+            if (students.Count == 0)
+            {
+                Console.WriteLine("No students found to delete.");
+                return;
+            }
+
+            Console.WriteLine("=== Delete Student ===");
+            Console.WriteLine("Current Students:");
+            
+            // Display all students with index numbers
+            for (int i = 0; i < students.Count; i++)
+            {
+                Console.WriteLine(string.Format("{0}. {1}", i + 1, students[i].DisplayInfo()));
+            }
+
+            Console.Write(string.Format("\nSelect student to delete (1-{0}): ", students.Count));
+            int selection;
+            if (!int.TryParse(Console.ReadLine(), out selection) || selection < 1 || selection > students.Count)
+            {
+                Console.WriteLine("Invalid selection.");
+                return;
+            }
+
+            // Get the selected student for confirmation
+            Student selectedStudent = students[selection - 1];
+            Console.WriteLine("\nAre you sure you want to delete this student?");
+            Console.WriteLine(selectedStudent.DisplayInfo());
+            Console.Write("Type 'YES' to confirm deletion: ");
+            
+            string confirmation = Console.ReadLine();
+            if (confirmation != null && confirmation.ToUpper() == "YES")
+            {
+                string deletedName = selectedStudent.Name;
+                students.RemoveAt(selection - 1);
+                Console.WriteLine(string.Format("\nStudent '{0}' deleted successfully!", deletedName));
+                Console.WriteLine(string.Format("Remaining students: {0}", students.Count));
+            }
+            else
+            {
+                Console.WriteLine("Deletion cancelled.");
+            }
+        }
     }
 }
