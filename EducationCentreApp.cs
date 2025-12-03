@@ -2,20 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-/// <summary>
-/// Education Centre Desktop Information System
-/// A comprehensive management system for handling Teaching Staff, Administration, and Students
-/// Author: Student Name
-/// Course: COMP1551
-/// Date: November 22, 2025
-/// </summary>
+
 namespace EducationCentreSystem
 {
-    /// <summary>
-    /// Base class representing a person in the education centre
-    /// Implements encapsulation with private fields and public properties
-    /// Serves as the foundation for all user types in the system
-    /// </summary>
+   
     public class Person
     {
         // Private fields implementing encapsulation principle
@@ -24,10 +14,7 @@ namespace EducationCentreSystem
         private string _email;
         private string _role;
 
-        /// <summary>
-        /// Default constructor for Person class
-        /// Initializes empty values for all properties
-        /// </summary>
+        
         public Person()
         {
             _name = "";
@@ -36,14 +23,7 @@ namespace EducationCentreSystem
             _role = "";
         }
 
-        /// <summary>
-        /// Parameterized constructor for Person class
-        /// Allows initialization of all common properties
-        /// </summary>
-        /// <param name="name">Full name of the person</param>
-        /// <param name="telephone">Contact telephone number</param>
-        /// <param name="email">Email address</param>
-        /// <param name="role">Role in the education centre (Teacher/Admin/Student)</param>
+       
         public Person(string name, string telephone, string email, string role)
         {
             _name = name;
@@ -52,72 +32,48 @@ namespace EducationCentreSystem
             _role = role;
         }
 
-        /// <summary>
-        /// Property for accessing and modifying the person's name
-        /// Implements encapsulation with validation
-        /// </summary>
+        
         public string Name
         {
             get { return _name; }
             set { _name = value ?? ""; }
         }
 
-        /// <summary>
-        /// Property for accessing and modifying the person's telephone number
-        /// Implements encapsulation with validation
-        /// </summary>
+        
         public string Telephone
         {
             get { return _telephone; }
             set { _telephone = value ?? ""; }
         }
 
-        /// <summary>
-        /// Property for accessing and modifying the person's email address
-        /// Implements encapsulation with validation
-        /// </summary>
+       
         public string Email
         {
             get { return _email; }
             set { _email = value ?? ""; }
         }
 
-        /// <summary>
-        /// Property for accessing and modifying the person's role
-        /// Implements encapsulation with validation
-        /// </summary>
+      
         public string Role
         {
             get { return _role; }
             set { _role = value ?? ""; }
         }
 
-        /// <summary>
-        /// Virtual method for displaying person information
-        /// Can be overridden in derived classes for polymorphism
-        /// </summary>
-        /// <returns>Formatted string with person's basic information</returns>
+   
         public virtual string DisplayInfo()
         {
             return string.Format("Name: {0}, Telephone: {1}, Email: {2}, Role: {3}", Name, Telephone, Email, Role);
         }
 
-        /// <summary>
-        /// Virtual method for getting detailed information
-        /// Designed to be overridden in derived classes for specific data display
-        /// </summary>
-        /// <returns>Basic person information</returns>
+  
         public virtual string GetDetailedInfo()
         {
             return DisplayInfo();
         }
     }
 
-    /// <summary>
-    /// Teacher class inheriting from Person base class
-    /// Represents teaching staff with salary and subject information
-    /// Demonstrates inheritance and polymorphism principles
-    /// </summary>
+    
     public class Teacher : Person
     {
         // Private fields specific to teachers
@@ -125,10 +81,6 @@ namespace EducationCentreSystem
         private string _subject1;
         private string _subject2;
 
-        /// <summary>
-        /// Default constructor for Teacher class
-        /// Calls base class constructor and initializes teacher-specific properties
-        /// </summary>
         public Teacher() : base()
         {
             _salary = 0.0m;
@@ -136,16 +88,6 @@ namespace EducationCentreSystem
             _subject2 = "";
         }
 
-        /// <summary>
-        /// Parameterized constructor for Teacher class
-        /// Initializes all teacher properties including inherited ones
-        /// </summary>
-        /// <param name="name">Teacher's full name</param>
-        /// <param name="telephone">Teacher's telephone number</param>
-        /// <param name="email">Teacher's email address</param>
-        /// <param name="salary">Teacher's salary amount</param>
-        /// <param name="subject1">First subject taught by teacher</param>
-        /// <param name="subject2">Second subject taught by teacher</param>
         public Teacher(string name, string telephone, string email, decimal salary, string subject1, string subject2)
             : base(name, telephone, email, "Teacher")
         {
@@ -154,51 +96,30 @@ namespace EducationCentreSystem
             _subject2 = subject2;
         }
 
-        /// <summary>
-        /// Property for accessing and modifying teacher's salary
-        /// Implements encapsulation with validation for positive values
-        /// </summary>
         public decimal Salary
         {
             get { return _salary; }
             set { _salary = value >= 0 ? value : 0; }
         }
 
-        /// <summary>
-        /// Property for accessing and modifying teacher's first subject
-        /// Implements encapsulation with null checking
-        /// </summary>
+        
         public string Subject1
         {
             get { return _subject1; }
             set { _subject1 = value ?? ""; }
         }
 
-        /// <summary>
-        /// Property for accessing and modifying teacher's second subject
-        /// Implements encapsulation with null checking
-        /// </summary>
         public string Subject2
         {
             get { return _subject2; }
             set { _subject2 = value ?? ""; }
         }
 
-        /// <summary>
-        /// Override of base class DisplayInfo method
-        /// Demonstrates polymorphism by providing teacher-specific information display
-        /// </summary>
-        /// <returns>Formatted string with teacher's complete information</returns>
         public override string DisplayInfo()
         {
             return base.DisplayInfo() + string.Format(", Salary: ${0:F2}, Subjects: {1}, {2}", Salary, Subject1, Subject2);
         }
 
-        /// <summary>
-        /// Override of base class GetDetailedInfo method
-        /// Provides comprehensive teacher information for detailed views
-        /// </summary>
-        /// <returns>Detailed teacher information string</returns>
         public override string GetDetailedInfo()
         {
             return "=== Teacher Information ===\n" +
@@ -212,11 +133,7 @@ namespace EducationCentreSystem
         }
     }
 
-    /// <summary>
-    /// Admin class inheriting from Person base class
-    /// Represents administration staff with salary, employment type, and working hours
-    /// Demonstrates inheritance and polymorphism principles
-    /// </summary>
+
     public class Admin : Person
     {
         // Private fields specific to administration staff
@@ -224,10 +141,7 @@ namespace EducationCentreSystem
         private string _employmentType; // Full-time or Part-time
         private int _workingHours;
 
-        /// <summary>
-        /// Default constructor for Admin class
-        /// Calls base class constructor and initializes admin-specific properties
-        /// </summary>
+     
         public Admin() : base()
         {
             _salary = 0.0m;
@@ -235,16 +149,7 @@ namespace EducationCentreSystem
             _workingHours = 40;
         }
 
-        /// <summary>
-        /// Parameterized constructor for Admin class
-        /// Initializes all admin properties including inherited ones
-        /// </summary>
-        /// <param name="name">Admin's full name</param>
-        /// <param name="telephone">Admin's telephone number</param>
-        /// <param name="email">Admin's email address</param>
-        /// <param name="salary">Admin's salary amount</param>
-        /// <param name="employmentType">Full-time or Part-time employment</param>
-        /// <param name="workingHours">Number of working hours per week</param>
+        
         public Admin(string name, string telephone, string email, decimal salary, string employmentType, int workingHours)
             : base(name, telephone, email, "Admin")
         {
@@ -253,20 +158,13 @@ namespace EducationCentreSystem
             _workingHours = workingHours;
         }
 
-        /// <summary>
-        /// Property for accessing and modifying admin's salary
-        /// Implements encapsulation with validation for positive values
-        /// </summary>
         public decimal Salary
         {
             get { return _salary; }
             set { _salary = value >= 0 ? value : 0; }
         }
 
-        /// <summary>
-        /// Property for accessing and modifying admin's employment type
-        /// Implements encapsulation with validation for Full-time/Part-time
-        /// </summary>
+     
         public string EmploymentType
         {
             get { return _employmentType; }
@@ -279,31 +177,19 @@ namespace EducationCentreSystem
             }
         }
 
-        /// <summary>
-        /// Property for accessing and modifying admin's working hours
-        /// Implements encapsulation with validation for positive values
-        /// </summary>
         public int WorkingHours
         {
             get { return _workingHours; }
             set { _workingHours = value > 0 ? value : 1; }
         }
 
-        /// <summary>
-        /// Override of base class DisplayInfo method
-        /// Demonstrates polymorphism by providing admin-specific information display
-        /// </summary>
-        /// <returns>Formatted string with admin's complete information</returns>
+
         public override string DisplayInfo()
         {
             return base.DisplayInfo() + string.Format(", Salary: ${0:F2}, Employment: {1}, Hours: {2}", Salary, EmploymentType, WorkingHours);
         }
 
-        /// <summary>
-        /// Override of base class GetDetailedInfo method
-        /// Provides comprehensive admin information for detailed views
-        /// </summary>
-        /// <returns>Detailed admin information string</returns>
+   
         public override string GetDetailedInfo()
         {
             return "=== Administration Information ===\n" +
@@ -317,11 +203,7 @@ namespace EducationCentreSystem
         }
     }
 
-    /// <summary>
-    /// Student class inheriting from Person base class
-    /// Represents students with three subjects they are enrolled in
-    /// Demonstrates inheritance and polymorphism principles
-    /// </summary>
+
     public class Student : Person
     {
         // Private fields specific to students
@@ -329,10 +211,7 @@ namespace EducationCentreSystem
         private string _subject2;
         private string _subject3;
 
-        /// <summary>
-        /// Default constructor for Student class
-        /// Calls base class constructor and initializes student-specific properties
-        /// </summary>
+    
         public Student() : base()
         {
             _subject1 = "";
@@ -340,16 +219,7 @@ namespace EducationCentreSystem
             _subject3 = "";
         }
 
-        /// <summary>
-        /// Parameterized constructor for Student class
-        /// Initializes all student properties including inherited ones
-        /// </summary>
-        /// <param name="name">Student's full name</param>
-        /// <param name="telephone">Student's telephone number</param>
-        /// <param name="email">Student's email address</param>
-        /// <param name="subject1">First subject enrolled by student</param>
-        /// <param name="subject2">Second subject enrolled by student</param>
-        /// <param name="subject3">Third subject enrolled by student</param>
+      
         public Student(string name, string telephone, string email, string subject1, string subject2, string subject3)
             : base(name, telephone, email, "Student")
         {
@@ -358,51 +228,33 @@ namespace EducationCentreSystem
             _subject3 = subject3;
         }
 
-        /// <summary>
-        /// Property for accessing and modifying student's first subject
-        /// Implements encapsulation with null checking
-        /// </summary>
+       
         public string Subject1
         {
             get { return _subject1; }
             set { _subject1 = value ?? ""; }
         }
 
-        /// <summary>
-        /// Property for accessing and modifying student's second subject
-        /// Implements encapsulation with null checking
-        /// </summary>
+
         public string Subject2
         {
             get { return _subject2; }
             set { _subject2 = value ?? ""; }
         }
 
-        /// <summary>
-        /// Property for accessing and modifying student's third subject
-        /// Implements encapsulation with null checking
-        /// </summary>
+    
         public string Subject3
         {
             get { return _subject3; }
             set { _subject3 = value ?? ""; }
         }
 
-        /// <summary>
-        /// Override of base class DisplayInfo method
-        /// Demonstrates polymorphism by providing student-specific information display
-        /// </summary>
-        /// <returns>Formatted string with student's complete information</returns>
         public override string DisplayInfo()
         {
             return base.DisplayInfo() + string.Format(", Subjects: {0}, {1}, {2}", Subject1, Subject2, Subject3);
         }
 
-        /// <summary>
-        /// Override of base class GetDetailedInfo method
-        /// Provides comprehensive student information for detailed views
-        /// </summary>
-        /// <returns>Detailed student information string</returns>
+
         public override string GetDetailedInfo()
         {
             return "=== Student Information ===\n" +
@@ -416,11 +268,7 @@ namespace EducationCentreSystem
         }
     }
 
-    /// <summary>
-    /// Main program class containing the Desktop Information System logic
-    /// Manages data structures and provides user interface functionality
-    /// Implements all required CRUD operations and menu system
-    /// </summary>
+
     public class Program
     {
         // Data structures to store different types of users
@@ -429,11 +277,7 @@ namespace EducationCentreSystem
         private static List<Admin> admins = new List<Admin>();
         private static List<Student> students = new List<Student>();
 
-        /// <summary>
-        /// Main entry point of the application
-        /// Initializes the system with sample data and starts the menu loop
-        /// </summary>
-        /// <param name="args">Command line arguments (not used)</param>
+      
         static void Main(string[] args)
         {
             Console.WriteLine("=== Education Centre Desktop Information System ===");
@@ -455,10 +299,7 @@ namespace EducationCentreSystem
             Console.ReadKey();
         }
 
-        /// <summary>
-        /// Initializes the system with sample data for demonstration purposes
-        /// Helps showcase the functionality without requiring manual data entry
-        /// </summary>
+        
         private static void InitializeSampleData()
         {
             // Sample Teachers
@@ -477,11 +318,7 @@ namespace EducationCentreSystem
             Console.WriteLine(string.Format("Sample data loaded: {0} teachers, {1} admins, {2} students\n", teachers.Count, admins.Count, students.Count));
         }
 
-        /// <summary>
-        /// Displays the main menu and handles user input
-        /// Returns false when user chooses to exit, true to continue
-        /// </summary>
-        /// <returns>Boolean indicating whether to continue the program</returns>
+  
         private static bool DisplayMainMenu()
         {
             Console.WriteLine("=== Main Menu ===");
@@ -559,10 +396,7 @@ namespace EducationCentreSystem
             }
         }
 
-        /// <summary>
-        /// Collects input and creates a new Teacher object
-        /// Validates input data and adds to the teachers collection
-        /// </summary>
+     
         private static void AddNewTeacher()
         {
             Console.WriteLine("=== Add New Teacher ===");
@@ -600,10 +434,7 @@ namespace EducationCentreSystem
             Console.WriteLine(string.Format("Total teachers in system: {0}", teachers.Count));
         }
 
-        /// <summary>
-        /// Collects input and creates a new Admin object
-        /// Validates input data and adds to the admins collection
-        /// </summary>
+        
         private static void AddNewAdmin()
         {
             Console.WriteLine("=== Add New Admin ===");
@@ -645,10 +476,7 @@ namespace EducationCentreSystem
             Console.WriteLine(string.Format("\nAdmin '{0}' added successfully!", name));
             Console.WriteLine(string.Format("Total admins in system: {0}", admins.Count));
         }
-
-        /// <summary>
-        /// Collects input and creates a new Student object
-        /// Validates input data and adds to the students collection
+        
         /// </summary>
         private static void AddNewStudent()
         {
@@ -682,10 +510,7 @@ namespace EducationCentreSystem
             Console.WriteLine(string.Format("Total students in system: {0}", students.Count));
         }
 
-        /// <summary>
-        /// Displays all existing data from all user groups
-        /// Uses polymorphism to call appropriate DisplayInfo method for each object type
-        /// </summary>
+     
         private static void ViewAllData()
         {
             Console.WriteLine("=== View All Existing Data ===");
@@ -734,10 +559,7 @@ namespace EducationCentreSystem
             }
         }
 
-        /// <summary>
-        /// Displays existing data filtered by user group
-        /// Allows viewing of specific user types (Teachers, Admins, Students)
-        /// </summary>
+    
         private static void ViewDataByGroup()
         {
             Console.WriteLine("=== View Data by User Group ===");
@@ -766,10 +588,7 @@ namespace EducationCentreSystem
             }
         }
 
-        /// <summary>
-        /// Displays detailed information for all teachers
-        /// Uses polymorphism to show teacher-specific data
-        /// </summary>
+  
         private static void ViewTeachers()
         {
             Console.WriteLine("=== Teachers in System ===");
@@ -789,10 +608,7 @@ namespace EducationCentreSystem
             }
         }
 
-        /// <summary>
-        /// Displays detailed information for all administration staff
-        /// Uses polymorphism to show admin-specific data
-        /// </summary>
+       
         private static void ViewAdmins()
         {
             Console.WriteLine("=== Administration Staff in System ===");
@@ -812,10 +628,7 @@ namespace EducationCentreSystem
             }
         }
 
-        /// <summary>
-        /// Displays detailed information for all students
-        /// Uses polymorphism to show student-specific data
-        /// </summary>
+  
         private static void ViewStudents()
         {
             Console.WriteLine("=== Students in System ===");
@@ -835,10 +648,7 @@ namespace EducationCentreSystem
             }
         }
 
-        /// <summary>
-        /// Handles editing of existing data in the system
-        /// Provides submenu for different user types and record selection
-        /// </summary>
+ 
         private static void EditExistingData()
         {
             Console.WriteLine("=== Edit Existing Data ===");
@@ -867,10 +677,7 @@ namespace EducationCentreSystem
             }
         }
 
-        /// <summary>
-        /// Edits a selected teacher's information
-        /// Displays current teachers and allows modification of selected record
-        /// </summary>
+     
         private static void EditTeacher()
         {
             if (teachers.Count == 0)
@@ -1266,3 +1073,4 @@ namespace EducationCentreSystem
         }
     }
 }
+
